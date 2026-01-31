@@ -29,6 +29,12 @@ final class AppSettings: ObservableObject {
     @Published var topP: Double {
         didSet { defaults.set(topP, forKey: Keys.topP) }
     }
+    @Published var useLlamaServer: Bool {
+        didSet { defaults.set(useLlamaServer, forKey: Keys.useLlamaServer) }
+    }
+    @Published var gpuLayers: Int {
+        didSet { defaults.set(gpuLayers, forKey: Keys.gpuLayers) }
+    }
 
     private let defaults: UserDefaults
 
@@ -57,6 +63,11 @@ final class AppSettings: ObservableObject {
         self.temperature = storedTemperature ?? 0.7
         let storedTopP = defaults.object(forKey: Keys.topP) as? Double
         self.topP = storedTopP ?? 0.9
+
+        let storedUseServer = defaults.object(forKey: Keys.useLlamaServer) as? Bool
+        self.useLlamaServer = storedUseServer ?? true
+        let storedGpuLayers = defaults.object(forKey: Keys.gpuLayers) as? Int
+        self.gpuLayers = storedGpuLayers ?? 24
     }
 }
 
@@ -70,4 +81,6 @@ private enum Keys {
     static let maxTokens = "settings.generation.maxTokens"
     static let temperature = "settings.generation.temperature"
     static let topP = "settings.generation.topP"
+    static let useLlamaServer = "settings.llama.serverEnabled"
+    static let gpuLayers = "settings.llama.gpuLayers"
 }

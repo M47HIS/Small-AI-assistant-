@@ -1,24 +1,25 @@
 import Foundation
 
 final class DownloadManager {
-    func downloadMissing(models: [ModelInfo], onModelStart: ((ModelInfo, Int, Int) -> Void)? = nil) async throws {
-        if models.isEmpty { return }
+    func download(model: ModelInfo, onFileStart: ((String, Int, Int) -> Void)? = nil) async throws {
         try FileManager.default.createDirectory(at: ModelStorage.modelsDirectory, withIntermediateDirectories: true)
+        if model.format == .gguf {
+            try removeInvalidOutputFile(for: model)
+            onFileStart?(model.downloadFileName, 1, 1)
+            let destination = model.outputURL
+            try await downloadFile(from: model.downloadURL, to: destination)
+            try validateFileSize(at: destination, minimumBytes: model.minimumBytes, modelName: model.name)
+            return
+        }
 
-        for (index, model) in models.enumerated() {
-            if model.isDownloaded { continue }
-            try removeInvalidLocalFile(for: model)
-            onModelStart?(model, index + 1, models.count)
-            let request = buildRequest(for: model.downloadURL)
-            let (tempURL, response) = try await URLSession.shared.download(for: request)
-            try validateResponse(response)
-            if FileManager.default.fileExists(atPath: model.localURL.path) {
-                try FileManager.default.removeItem(at: model.localURL)
-            }
-            try FileManager.default.moveItem(at: tempURL, to: model.localURL)
-            guard model.isDownloaded else {
-                try? FileManager.default.removeItem(at: model.localURL)
-                throw DownloadError.invalidSize(modelName: model.name)
+        try prepareWorkingDirectory(for: model)
+        let files = model.filesToDownload
+        for (index, fileName) in files.enumerated() {
+            onFileStart?(fileName, index + 1, files.count)
+            let destination = model.workingDirectory.appendingPathComponent(fileName)
+            try await downloadFile(from: model.downloadURL(for: fileName), to: destination)
+            if fileName == model.downloadFileName {
+                try validateFileSize(at: destination, minimumBytes: model.sourceMinimumBytes, modelName: model.name)
             }
         }
     }
@@ -44,11 +45,49 @@ final class DownloadManager {
         }
     }
 
-    private func removeInvalidLocalFile(for model: ModelInfo) throws {
-        guard FileManager.default.fileExists(atPath: model.localURL.path) else { return }
-        if model.isDownloaded == false {
-            try FileManager.default.removeItem(at: model.localURL)
+    private func prepareWorkingDirectory(for model: ModelInfo) throws {
+        let directory = model.workingDirectory
+        if FileManager.default.fileExists(atPath: directory.path) == false {
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            return
         }
+        let modelFile = directory.appendingPathComponent(model.downloadFileName)
+        if validateFileSize(at: modelFile, minimumBytes: model.sourceMinimumBytes) == false {
+            try FileManager.default.removeItem(at: directory)
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        }
+    }
+
+    private func removeInvalidOutputFile(for model: ModelInfo) throws {
+        guard FileManager.default.fileExists(atPath: model.outputURL.path) else { return }
+        if model.isDownloaded == false {
+            try FileManager.default.removeItem(at: model.outputURL)
+        }
+    }
+
+    private func downloadFile(from url: URL, to destination: URL) async throws {
+        let request = buildRequest(for: url)
+        let (tempURL, response) = try await URLSession.shared.download(for: request)
+        try validateResponse(response)
+        let destinationDirectory = destination.deletingLastPathComponent()
+        try FileManager.default.createDirectory(at: destinationDirectory, withIntermediateDirectories: true)
+        if FileManager.default.fileExists(atPath: destination.path) {
+            try FileManager.default.removeItem(at: destination)
+        }
+        try FileManager.default.moveItem(at: tempURL, to: destination)
+    }
+
+    private func validateFileSize(at url: URL, minimumBytes: Int64, modelName: String? = nil) throws {
+        guard validateFileSize(at: url, minimumBytes: minimumBytes) else {
+            let name = modelName ?? url.lastPathComponent
+            throw DownloadError.invalidSize(modelName: name)
+        }
+    }
+
+    private func validateFileSize(at url: URL, minimumBytes: Int64) -> Bool {
+        guard let attributes = try? FileManager.default.attributesOfItem(atPath: url.path),
+              let size = attributes[.size] as? Int64 else { return false }
+        return size >= minimumBytes
     }
 }
 

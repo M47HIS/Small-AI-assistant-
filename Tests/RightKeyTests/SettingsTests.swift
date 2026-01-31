@@ -13,5 +13,7 @@ final class SettingsTests: XCTestCase {
         XCTAssertEqual(settings.maxTokens, 256)
         XCTAssertEqual(settings.temperature, 0.7)
         XCTAssertEqual(settings.topP, 0.9)
+        XCTAssertEqual(settings.useLlamaServer, true)
+        XCTAssertEqual(settings.gpuLayers, 24)
     }
 }

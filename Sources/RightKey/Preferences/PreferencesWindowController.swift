@@ -3,10 +3,12 @@ import SwiftUI
 
 final class PreferencesWindowController {
     private let settings: AppSettings
+    private let modelManager: ModelManager
     private var window: NSWindow?
 
-    init(settings: AppSettings) {
+    init(settings: AppSettings, modelManager: ModelManager) {
         self.settings = settings
+        self.modelManager = modelManager
     }
 
     func show() {
@@ -16,7 +18,7 @@ final class PreferencesWindowController {
             return
         }
 
-        let view = PreferencesView(settings: settings)
+        let view = PreferencesView(settings: settings, modelManager: modelManager)
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 640, height: 520),
             styleMask: [.titled, .closable],

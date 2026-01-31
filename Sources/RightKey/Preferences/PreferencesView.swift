@@ -3,6 +3,7 @@ import SwiftUI
 
 struct PreferencesView: View {
     @ObservedObject var settings: AppSettings
+    @ObservedObject var modelManager: ModelManager
     @State private var isRecording = false
     @State private var recordingHint = "Press Record, then type the new shortcut."
     @State private var keyMonitor: Any?
@@ -102,13 +103,12 @@ struct PreferencesView: View {
     }
 
     private var modelGroup: some View {
-        preferenceSection(title: "Models", subtitle: "Choose the default model and storage path.", systemImage: "cube") {
-            Picker("Default model", selection: $settings.defaultModelID) {
-                ForEach(ModelInfo.available) { model in
-                    Text(model.name).tag(model.id)
+        preferenceSection(title: "Models", subtitle: "Download and select models.", systemImage: "cube") {
+            VStack(alignment: .leading, spacing: 12) {
+                ForEach(modelManager.entries) { entry in
+                    modelRow(entry)
                 }
             }
-            .pickerStyle(.menu)
 
             HStack {
                 Text("Models stored at")
@@ -142,6 +142,23 @@ struct PreferencesView: View {
                     settings.llamaBinaryPath = ""
                 }
                 .buttonStyle(.bordered)
+            }
+
+            Toggle("Use persistent server", isOn: $settings.useLlamaServer)
+
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("GPU layers")
+                        .font(.custom("Avenir Next", size: 12))
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Text("\(settings.gpuLayers)")
+                        .font(.custom("Avenir Next Demi Bold", size: 12))
+                }
+                Stepper(value: $settings.gpuLayers, in: 0...64, step: 1) {
+                    Text(settings.gpuLayers == 0 ? "CPU only" : "\(settings.gpuLayers) layers")
+                        .font(.custom("Avenir Next Demi Bold", size: 12))
+                }
             }
         }
     }
@@ -225,6 +242,103 @@ struct PreferencesView: View {
                             .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
                     )
             )
+        }
+    }
+
+    private func modelRow(_ entry: ModelEntry) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(entry.info.name)
+                        .font(.custom("Avenir Next Demi Bold", size: 13))
+                    Text("\(entry.info.sizeLabel) · \(entry.info.quantization)")
+                        .font(.custom("Avenir Next", size: 11))
+                        .foregroundColor(.secondary)
+                }
+                Spacer()
+                Text(statusLabel(for: entry))
+                    .font(.custom("Avenir Next", size: 11))
+                    .foregroundColor(statusColor(for: entry))
+            }
+
+            HStack(spacing: 8) {
+                if entry.info.id != settings.defaultModelID, entry.state == .ready {
+                    Button("Use") {
+                        settings.defaultModelID = entry.info.id
+                        modelManager.selectModel(id: entry.info.id)
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+
+                if entry.state == .notDownloaded || entry.state == .error {
+                    Button("Download") {
+                        modelManager.downloadModel(id: entry.info.id)
+                    }
+                    .buttonStyle(.bordered)
+                }
+
+                if entry.state == .ready {
+                    Button("Delete") {
+                        modelManager.deleteModel(id: entry.info.id)
+                    }
+                    .buttonStyle(.bordered)
+                }
+
+                if entry.info.id == settings.defaultModelID {
+                    Text("Selected")
+                        .font(.custom("Avenir Next", size: 11))
+                        .foregroundColor(.secondary)
+                }
+            }
+
+            if entry.state == .downloading || entry.state == .converting {
+                Text(entry.statusMessage)
+                    .font(.custom("Avenir Next", size: 11))
+                    .foregroundColor(.secondary)
+            }
+
+            if let error = entry.errorMessage, entry.state == .error {
+                Text(error)
+                    .font(.custom("Avenir Next", size: 11))
+                    .foregroundColor(.red)
+            }
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(Color(nsColor: .windowBackgroundColor))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
+                )
+        )
+    }
+
+    private func statusLabel(for entry: ModelEntry) -> String {
+        switch entry.state {
+        case .ready:
+            return "Ready"
+        case .notDownloaded:
+            return "Not downloaded"
+        case .downloading:
+            return "Downloading"
+        case .converting:
+            return "Converting"
+        case .error:
+            return "Error"
+        }
+    }
+
+    private func statusColor(for entry: ModelEntry) -> Color {
+        switch entry.state {
+        case .ready:
+            return .green
+        case .error:
+            return .red
+        case .downloading, .converting:
+            return .orange
+        case .notDownloaded:
+            return .secondary
         }
     }
 

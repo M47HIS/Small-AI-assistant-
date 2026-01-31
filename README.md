@@ -19,7 +19,8 @@ Menu-bar macOS hotkey assistant with tiny local models. It opens a top-right cha
 - Context capture: clipboard + frontmost app/window title.
 
 ## Models
-- Phi-1.5 Q4 (GGUF via llama.cpp).
+- Built-in catalog: Phi-1.5 Q4, TinyLlama 1.1B Q4, Phi-1.5 HF base (auto-converted).
+- Managed from Preferences (download, use, delete).
 - Stored at `/Users/mathis.naud/Desktop/DEV/MODELS`.
 - Only one model loaded in RAM at a time.
 
@@ -28,6 +29,10 @@ Menu-bar macOS hotkey assistant with tiny local models. It opens a top-right cha
 - Install: `brew install llama.cpp` or set `LLAMA_BIN` to the CLI path.
 - You can also set the binary path in Preferences.
 - Hugging Face downloads may require `HF_TOKEN` if the model is gated.
+- Conversion requires `convert_hf_to_gguf.py` and `llama-quantize` (from llama.cpp).
+- Set `LLAMA_CONVERT_PATH` or `LLAMA_QUANTIZE_BIN` if they are not auto-detected.
+- Set `PYTHON_BIN` to a python3 with transformers/torch/safetensors installed.
+- For best performance, enable the persistent server and GPU layers in Preferences.
 
 ## Architecture Sketch
 - Hotkey manager -> overlay controller.
@@ -37,7 +42,7 @@ Menu-bar macOS hotkey assistant with tiny local models. It opens a top-right cha
 
 ## Memory Strategy
 - Load model on demand, unload after 90s idle.
-- One active model at a time (Phi-1.5).
+- One active model at a time (per selection).
 - Small context window and conservative batch sizes.
 
 ## Usage
@@ -49,7 +54,7 @@ Menu-bar macOS hotkey assistant with tiny local models. It opens a top-right cha
 - Tests: `swift test`.
 
 ## Status
-- Phi-1.5 is wired through llama.cpp CLI; RWKV is not yet integrated.
+- Llama.cpp GGUF flow + HF conversion are supported; RWKV is not yet integrated.
 
 ## Security & Privacy
 - Local inference only.

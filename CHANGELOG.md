@@ -10,3 +10,5 @@ All notable changes to this project will be documented in this file.
 - Wired Phi-1.5 responses through llama.cpp CLI with streaming output.
 - Added runtime and generation controls (binary path, max tokens, temperature, top-p).
 - Improved model download flow with size validation, status, and optional HF token support.
+- Added persistent llama-server mode with GPU layer controls to reduce load time.
+- Added a simple model catalog UI with HF downloads and auto-conversion to GGUF.

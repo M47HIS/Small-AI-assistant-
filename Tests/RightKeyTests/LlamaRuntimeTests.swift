@@ -30,4 +30,23 @@ final class LlamaRuntimeTests: XCTestCase {
         let located = LlamaRuntime.resolveBinaryURL(settings: settings)
         XCTAssertEqual(located?.path, tempURL.path)
     }
+
+    func testResolveServerFromSiblingPath() throws {
+        let tempDir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        let cliURL = tempDir.appendingPathComponent("llama-cli")
+        let serverURL = tempDir.appendingPathComponent("llama-server")
+        FileManager.default.createFile(atPath: cliURL.path, contents: Data())
+        FileManager.default.createFile(atPath: serverURL.path, contents: Data())
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: cliURL.path)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: serverURL.path)
+        let defaults = UserDefaults(suiteName: "RightKeyRuntimeTests")!
+        defaults.removePersistentDomain(forName: "RightKeyRuntimeTests")
+        let settings = AppSettings(defaults: defaults)
+        settings.llamaBinaryPath = cliURL.path
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let located = LlamaRuntime.resolveServerURL(settings: settings)
+        XCTAssertEqual(located?.path, serverURL.path)
+    }
 }

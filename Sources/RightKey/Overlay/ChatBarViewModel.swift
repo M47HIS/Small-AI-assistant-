@@ -14,7 +14,6 @@ final class ChatBarViewModel: ObservableObject {
 
     private let modelManager: ModelManager
     private let settings: AppSettings
-    private let downloadManager = DownloadManager()
     private var cancellables: Set<AnyCancellable> = []
 
     init(modelManager: ModelManager, settings: AppSettings) {
@@ -27,12 +26,22 @@ final class ChatBarViewModel: ObservableObject {
             .receive(on: RunLoop.main)
             .sink { [weak self] modelID in
                 self?.selectedModelID = modelID
+                self?.updateDownloadState()
             }
             .store(in: &cancellables)
+
+        modelManager.$entries
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.updateDownloadState()
+            }
+            .store(in: &cancellables)
+
+        updateDownloadState()
     }
 
     var models: [ModelInfo] {
-        ModelInfo.available
+        modelManager.models
     }
 
     func updateSelectedModel(_ modelID: String) {
@@ -44,8 +53,9 @@ final class ChatBarViewModel: ObservableObject {
     func submit() {
         let trimmed = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmed.isEmpty == false else { return }
-        if modelManager.missingModels.isEmpty == false {
+        if modelManager.entry(for: selectedModelID)?.state != .ready {
             downloadModelsIfNeeded()
+            responseText = "Model is not ready. Downloading now..."
             return
         }
         responseText = ""
@@ -63,25 +73,33 @@ final class ChatBarViewModel: ObservableObject {
 
     func downloadModelsIfNeeded() {
         downloadError = nil
-        showDownloader = true
-        isDownloading = true
-        downloadStatus = "Preparing download..."
-        let missingModels = modelManager.missingModels
-        Task {
-            do {
-                try await downloadManager.downloadMissing(models: missingModels) { [weak self] model, index, total in
-                    Task { @MainActor in
-                        self?.downloadStatus = "Downloading \(model.name) (\(index)/\(total))"
-                    }
-                }
-                showDownloader = modelManager.missingModels.isEmpty == false
-                isDownloading = false
-                downloadStatus = showDownloader ? "Waiting for download..." : "Download complete."
-            } catch {
-                isDownloading = false
-                downloadStatus = "Download failed."
-                downloadError = error.localizedDescription
-            }
+        modelManager.downloadModel(id: selectedModelID)
+        updateDownloadState()
+    }
+
+    private func updateDownloadState() {
+        guard let entry = modelManager.entry(for: selectedModelID) else { return }
+        switch entry.state {
+        case .ready:
+            showDownloader = false
+            isDownloading = false
+            downloadStatus = ""
+            downloadError = nil
+        case .notDownloaded:
+            showDownloader = true
+            isDownloading = false
+            downloadStatus = "Model not downloaded."
+            downloadError = nil
+        case .downloading, .converting:
+            showDownloader = true
+            isDownloading = true
+            downloadStatus = entry.statusMessage
+            downloadError = nil
+        case .error:
+            showDownloader = true
+            isDownloading = false
+            downloadStatus = entry.statusMessage
+            downloadError = entry.errorMessage
         }
     }
 }

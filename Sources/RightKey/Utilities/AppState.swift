@@ -11,7 +11,7 @@ final class AppState: ObservableObject {
     init() {
         self.settings = AppSettings()
         self.modelManager = ModelManager(settings: settings)
-        self.preferencesController = PreferencesWindowController(settings: settings)
+        self.preferencesController = PreferencesWindowController(settings: settings, modelManager: modelManager)
         self.overlayController = OverlayWindowController(
             modelManager: modelManager,
             settings: settings,

@@ -236,7 +236,7 @@ struct ChatBarView: View {
 
     private var downloadView: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Downloading models")
+            Text("Model setup")
                 .font(.custom("Avenir Next Demi Bold", size: 12))
             Text(viewModel.downloadStatus.isEmpty ? "Saving to /Users/mathis.naud/Desktop/DEV/MODELS" : viewModel.downloadStatus)
                 .font(.custom("Avenir Next", size: 10))
@@ -245,7 +245,7 @@ struct ChatBarView: View {
                 ProgressView()
             }
             ForEach(viewModel.models) { model in
-                Link("Open \(model.name) page", destination: model.downloadURL)
+                Link("Open \(model.name) page", destination: model.repoURL)
                     .font(.custom("Avenir Next", size: 10))
             }
             Button("Reveal downloads folder") {
