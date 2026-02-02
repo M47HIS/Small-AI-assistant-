@@ -12,3 +12,4 @@ All notable changes to this project will be documented in this file.
 - Improved model download flow with size validation, status, and optional HF token support.
 - Added persistent llama-server mode with GPU layer controls to reduce load time.
 - Added a simple model catalog UI with HF downloads and auto-conversion to GGUF.
+- Store downloaded models in Application Support.

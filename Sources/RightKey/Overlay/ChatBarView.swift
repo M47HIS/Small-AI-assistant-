@@ -235,10 +235,11 @@ struct ChatBarView: View {
     }
 
     private var downloadView: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        let modelsPath = ModelStorage.modelsDirectory.path
+        return VStack(alignment: .leading, spacing: 8) {
             Text("Model setup")
                 .font(.custom("Avenir Next Demi Bold", size: 12))
-            Text(viewModel.downloadStatus.isEmpty ? "Saving to /Users/mathis.naud/Desktop/DEV/MODELS" : viewModel.downloadStatus)
+            Text(viewModel.downloadStatus.isEmpty ? "Saving to \(modelsPath)" : viewModel.downloadStatus)
                 .font(.custom("Avenir Next", size: 10))
                 .foregroundColor(.secondary)
             if viewModel.isDownloading {

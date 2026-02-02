@@ -18,8 +18,14 @@ let package = Package(
         .executableTarget(
             name: "RightKey",
             path: "Sources/RightKey",
+            exclude: ["Resources/Info.plist"],
             linkerSettings: [
-                .unsafeFlags(["-sectcreate", "__TEXT", "__info_plist", infoPlistPath])
+                .unsafeFlags([
+                    "-Xlinker", "-sectcreate",
+                    "-Xlinker", "__TEXT",
+                    "-Xlinker", "__info_plist",
+                    "-Xlinker", infoPlistPath
+                ])
             ]
         ),
         .testTarget(

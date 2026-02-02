@@ -3,7 +3,7 @@
 ## Phase 0 - Decisions
 - SwiftUI menu-bar app (macOS native).
 - Runtimes: llama.cpp for Phi-1.5, RWKV runtime for RWKV-430M.
-- Model storage: `/Users/mathis.naud/Desktop/DEV/MODELS`.
+- Model storage: `~/Library/Application Support/RightKey/Models`.
 
 ## Workflow
 - Push changes to https://github.com/M47HIS/Small-AI-assistant- as soon as possible.

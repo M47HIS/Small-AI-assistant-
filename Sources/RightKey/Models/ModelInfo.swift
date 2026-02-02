@@ -143,5 +143,12 @@ struct ModelInfo: Identifiable, Hashable {
 }
 
 enum ModelStorage {
-    static let modelsDirectory = URL(fileURLWithPath: "/Users/mathis.naud/Desktop/DEV/MODELS", isDirectory: true)
+    static let modelsDirectory: URL = {
+        let fileManager = FileManager.default
+        let appSupport = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+        let base = appSupport ?? fileManager.homeDirectoryForCurrentUser
+        return base
+            .appendingPathComponent("RightKey", isDirectory: true)
+            .appendingPathComponent("Models", isDirectory: true)
+    }()
 }

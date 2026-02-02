@@ -16,12 +16,12 @@ Menu-bar macOS hotkey assistant with tiny local models. It opens a top-right cha
 - Menu-bar app with customizable hotkey.
 - Top-right chat bar with model dropdown + settings.
 - First-run model download flow.
-- Context capture: clipboard + frontmost app/window title.
+- Context capture: clipboard + frontmost app name.
 
 ## Models
 - Built-in catalog: Phi-1.5 Q4, TinyLlama 1.1B Q4, Phi-1.5 HF base (auto-converted).
 - Managed from Preferences (download, use, delete).
-- Stored at `/Users/mathis.naud/Desktop/DEV/MODELS`.
+- Stored at `~/Library/Application Support/RightKey/Models`.
 - Only one model loaded in RAM at a time.
 
 ## Runtime
@@ -47,7 +47,7 @@ Menu-bar macOS hotkey assistant with tiny local models. It opens a top-right cha
 
 ## Usage
 - Default hotkey: Option+Space (customizable in Preferences).
-- Click the gear icon for settings.
+- Use the model menu or menu bar item for Preferences.
 
 ## Setup
 - Open `Package.swift` in Xcode 15+ and run the app.
