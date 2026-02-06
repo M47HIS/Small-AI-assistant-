@@ -3,6 +3,9 @@
 All notable changes to this project will be documented in this file.
 
 ## [0.1.0] - Unreleased
+- Documentation update: local-only inference is now specified as a permanent product constraint (not MVP-only).
+- Documentation update: browser automation and deep filesystem indexing are out of scope permanently.
+- Documentation update: real-time on-screen OCR/vision context capture is now the next priority track.
 - Added RightKey SwiftUI menu-bar scaffold and overlay chat bar.
 - Added settings, preferences UI, and hotkey capture.
 - Added model metadata, downloader, and prompt builder stubs.

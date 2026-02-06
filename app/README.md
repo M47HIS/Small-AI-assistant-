@@ -1,22 +1,30 @@
 # RightKey
 
-Menu-bar macOS hotkey assistant with tiny local models. It opens a top-right chat bar, streams responses, and uses clipboard + frontmost app context. Only one model is loaded at a time, and it unloads after idle to keep RAM near-zero.
+Menu-bar macOS hotkey assistant with tiny local models. It opens a top-right chat bar, streams responses, and keeps one model in RAM at a time with idle unload.
 
-## Goals
+## Product Goals
 - Global hotkey opens a minimal UI overlay.
 - Local LLM with fast cold-start and low idle memory.
-- Safe access to user data via clipboard + app context.
+- Better answers from local context, including real-time on-screen OCR/vision context.
 
-## Non-goals (for MVP)
-- Cloud inference.
-- Full browser automation.
-- Deep filesystem indexing.
+## Permanent Constraints
+- No cloud inference at any point.
+- No browser automation features.
+- No deep filesystem indexing/background crawling.
 
-## MVP Scope
+## Current Scope (Implemented)
 - Menu-bar app with customizable hotkey.
 - Top-right chat bar with model dropdown + settings.
 - First-run model download flow.
-- Context capture: clipboard + frontmost app name.
+- Context capture: clipboard + frontmost app name/title.
+- Model switching with single-model-in-RAM behavior.
+- Idle unload after 90 seconds.
+
+## Next Scope (Priority)
+- Real-time on-screen context capture (OCR/vision), processed locally.
+- User-controlled capture source (active screen/window/region).
+- Prompt enrichment from OCR text + current app context.
+- Capture safeguards (only while active, visible status, quick pause toggle).
 
 ## Models
 - Built-in catalog: Phi-1.5 Q4, TinyLlama 1.1B Q4, Phi-1.5 HF base (auto-converted).
@@ -36,7 +44,7 @@ Menu-bar macOS hotkey assistant with tiny local models. It opens a top-right cha
 
 ## Architecture Sketch
 - Hotkey manager -> overlay controller.
-- Context collector -> prompt builder.
+- Context collector (clipboard/app/ocr) -> prompt builder.
 - Model manager -> runtime backend -> response stream.
 - Chat bar UI -> response display + preferences.
 
@@ -54,9 +62,11 @@ Menu-bar macOS hotkey assistant with tiny local models. It opens a top-right cha
 - Tests: `swift test`.
 
 ## Status
-- Llama.cpp GGUF flow + HF conversion are supported; RWKV is not yet integrated.
+- Llama.cpp GGUF flow + HF conversion are supported.
+- OCR/vision screen-context capture is planned and prioritized.
 
 ## Security & Privacy
 - Local inference only.
-- Explicit access to clipboard and app context.
-- No background indexing without consent.
+- Network access only for model download and setup.
+- Context capture is user-scoped and should run only while assistant capture is active.
+- No deep filesystem indexing.
