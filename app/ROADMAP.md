@@ -1,42 +1,80 @@
-# Roadmap
+# RightKey Loadstar Roadmap
 
-## Phase 0 - Product Decisions
-- SwiftUI menu-bar app (macOS native).
+This is the single roadmap of record for app delivery. Use this file as the planning and execution source of truth.
+
+## Product Contract (Fixed)
+- macOS SwiftUI menu-bar assistant.
 - Two runtime modes:
-  - `Privacy Mode`: local model inference.
-  - `Cloud Mode`: user-supplied provider/API credentials.
-- Users must be able to switch modes any time in Preferences.
-- No browser automation and no deep filesystem indexing.
-- Local OCR/vision context collection for screen-aware answers.
-- Runtimes: llama.cpp for local mode.
-- Model storage: `~/Library/Application Support/RightKey/Models`.
+  - `Privacy Mode`: local inference with downloaded models.
+  - `Cloud Mode`: user-provided provider/API credentials.
+- User can switch modes anytime in Preferences.
+- OCR/vision screen context is local capture and prompt input.
+- No browser automation.
+- No deep filesystem indexing/background crawling.
 
-## Workflow
-- Push changes to https://github.com/M47HIS/Small-AI-assistant- as soon as possible.
+## Current State
+- Core overlay, hotkey, local model download, and local inference are implemented.
+- Runtime controls (llama.cpp path/settings) are implemented.
+- App structure is canonical under `app/`.
 
-## Phase 1 - Desktop Core (Current)
-- Global hotkey listener (customizable).
-- Top-right chat bar UI with settings icon.
-- First-run model download flow.
-- Context collector: clipboard + frontmost app title.
-- Model switching with single-model-in-RAM rule.
-- Idle unload after 90s.
+## Phase 1 - Mode System (Now)
+Outcome: user can select mode on first run and switch safely at runtime.
 
-## Phase 2 - Mode System (Priority)
-- First-run mode choice (`Privacy Mode` vs `Cloud Mode`).
-- Preferences mode switcher with clear active-state indicator.
-- Provider configuration UI (OpenAI/ChatGPT, Gemini, extensible adapters).
-- Local secure credential storage and validation.
+Deliverables:
+- Onboarding mode picker (`Privacy` / `Cloud`).
+- Preferences mode switch with visible active-mode badge.
+- Mode router in runtime layer (local backend vs cloud backend).
+- Safe transition logic (cancel in-flight, switch backend, preserve prompt).
+
+Exit criteria:
+- Mode persists across restarts.
+- Switching mode does not crash or hang active UI.
+- Tests cover persistence and switch transitions.
+
+## Phase 2 - Cloud Providers (Next)
+Outcome: cloud mode works with user-owned providers.
+
+Deliverables:
+- Provider adapters (start: OpenAI/ChatGPT-style API, Gemini).
+- API key entry and validation UX.
+- Secure key storage strategy (Keychain-backed).
+- Per-provider request/response normalization.
+
+Exit criteria:
+- User can configure provider and receive responses in cloud mode.
+- Failed auth/network states are surfaced with actionable errors.
+- No hidden fallback from privacy mode to cloud mode.
 
 ## Phase 3 - OCR/Screen Intelligence (Priority)
-- Real-time on-screen OCR/vision capture pipeline (local processing).
-- Source selection: active screen/window/region.
-- Prompt fusion: OCR text + app metadata + user prompt.
-- Real-time suggestion engine from OCR/app context.
-- Capture controls: explicit enable, quick pause, visible capture status.
+Outcome: RightKey answers from live on-screen context.
 
-## Phase 4 - Reliability
+Deliverables:
+- Real-time OCR/vision capture pipeline (local processing).
+- Capture source selector (screen/window/region).
+- Prompt fusion: OCR text + app metadata + user prompt.
+- Real-time suggestion stream in overlay.
+- Capture controls: enable toggle, quick pause, visible capture indicator.
+
+Exit criteria:
+- OCR context updates while active session is open.
+- Suggestions update without blocking input latency.
+- Capture stops immediately when paused/disabled.
+
+## Phase 4 - Reliability and Quality
+Outcome: production-grade stability and debuggability.
+
+Deliverables:
 - Telemetry-free diagnostics.
 - Crash recovery + safe mode.
-- OCR and mode-switch performance profiling.
-- Local-vs-cloud behavior tests and benchmarks.
+- Benchmarks for local/cloud latency and OCR throughput.
+- Regression tests for mode switching and OCR prompt fusion.
+
+Exit criteria:
+- Clean `swift test` in CI and locally.
+- No P1 regressions on mode switch, model load/unload, or OCR capture loop.
+
+## Execution Rules
+- Keep diffs small and reversible.
+- Add tests for all behavior changes.
+- Update `app/README.md` and `app/CHANGELOG.md` when scope/behavior changes.
+- Push each major change set to GitHub.

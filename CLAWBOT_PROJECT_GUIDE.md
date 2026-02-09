@@ -19,7 +19,7 @@ Primary product requirements:
 - `website/` -> website/marketing assets. Ignore unless explicitly requested.
 - `README.md` (repo root) -> pointer file.
 - `app/README.md` -> product and technical source of truth for app scope.
-- `app/ROADMAP.md` -> delivery phases.
+- `app/ROADMAP.md` -> loadstar roadmap (single source of truth for delivery priorities).
 - `app/CHANGELOG.md` -> release notes.
 - `AGENTS.md` -> collaboration and quality constraints.
 

@@ -11,3 +11,6 @@ Desktop app quick start:
 cd app
 swift test
 ```
+
+Planning source of truth:
+- `app/ROADMAP.md` (loadstar roadmap)
